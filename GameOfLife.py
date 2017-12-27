@@ -1,43 +1,15 @@
 #!/usr/bin/env python
-import curses, random, time
+import curses, random, time, sys, argparse
 import numpy as np
-
-def getNLivingNeighbours((X,Y), screen):
-  output = 0
-
-  xmin = X-1
-  xmax = X+2
-  ymin = Y-1
-  ymax = Y+2
-
-  if X == 0:
-    xmin = 0
-  if Y == 0:
-    ymin = 0
-
-  if X == screen.xmax - 1:
-    xmax = X
-  if Y == screen.ymax - 1:
-    ymax = Y
-
-  for x in range(xmin, xmax):
-    for y in range(ymin, ymax):
-      if screen.coords[x,y] != '':
-        output += 1
-
-  if screen.coords[X,Y] != '':
-    output -= 1
-
-  return output
-
 
 class Screen:
 
   def __init__(self, (ymax, xmax), nCells):
     self.coords = np.zeros((xmax, ymax), dtype=str)
-    self.nCells = nCells
     self.xmax   = xmax
     self.ymax   = ymax
+    self.nCells = nCells
+
 
   def update(self):
 
@@ -46,7 +18,6 @@ class Screen:
     for (x, y), element in np.ndenumerate(self.coords):
 
       ## Calculate number of living neighbours ##
-      #living_neighbours = getNLivingNeighbours((x,y), self)
       living_neighbours = 0
 
       xmin = x-1
@@ -77,24 +48,27 @@ class Screen:
         if living_neighbours < 2 or living_neighbours > 3: # Rules 1 & 3, if a cell has fewer than two or greater than 3 neighbours, it dies
           new_coords[x][y] = ''
         else:
-          new_coords[x][y] = 'X'
+          new_coords[x][y] = 'X'                           # Else it survives
       elif living_neighbours == 3:
-          new_coords[x][y] = 'X'
+          new_coords[x][y] = 'X'                           # An empty cell with 3 neighbours comes to life
 
     self.coords = new_coords
 
-  def setup_random(self):
+
+  def setup_random(self):                                  # Fill a random set of cells to get the starting configuration of the board
     for N in range(self.nCells):
       randx  = random.randint(0, self.xmax - 1)
       randy  = random.randint(0, self.ymax - 1)
       self.coords[randx][randy] = 'X'
 
-  def setup_blinker(self):
+
+  def setup_blinker(self):                                 # Create a blinker
     self.coords[10, 10] = 'X'
     self.coords[10, 11] = 'X'
     self.coords[10, 12] = 'X'
 
-  def setup_pentadecathlon(self):
+
+  def setup_pentadecathlon(self):                          # Create a pentadecathlon
     self.coords[ 7,  9] = 'X'
     self.coords[ 8,  9] = 'X'
     self.coords[ 9,  9] = 'X'
@@ -118,82 +92,60 @@ class Screen:
     self.coords[13, 11] = 'X'
     self.coords[14, 11] = 'X'
 
-  def setup_pulsar(self):
-    self.coords[12,  0] = 'X'
-    self.coords[13,  0] = 'X'
-    self.coords[19,  0] = 'X'
-    self.coords[20,  0] = 'X'
-    self.coords[13,  1] = 'X'
-    self.coords[14,  1] = 'X'
-    self.coords[18,  1] = 'X'
-    self.coords[19,  1] = 'X'
-    self.coords[10,  2] = 'X'
-    self.coords[13,  2] = 'X'
-    self.coords[15,  2] = 'X'
-    self.coords[17,  2] = 'X'
-    self.coords[19,  2] = 'X'
-    self.coords[22,  2] = 'X'
-    self.coords[10,  3] = 'X'
-    self.coords[11,  3] = 'X'
-    self.coords[12,  3] = 'X'
-    self.coords[14,  3] = 'X'
-    self.coords[15,  3] = 'X'
-    self.coords[17,  3] = 'X'
-    self.coords[18,  3] = 'X'
-    self.coords[20,  3] = 'X'
-    self.coords[21,  3] = 'X'
-    self.coords[22,  3] = 'X'
-    self.coords[11,  4] = 'X'
-    self.coords[13,  4] = 'X'
-    self.coords[15,  4] = 'X'
-    self.coords[17,  4] = 'X'
-    self.coords[19,  4] = 'X'
-    self.coords[21,  4] = 'X'
-    self.coords[12,  5] = 'X'
-    self.coords[13,  5] = 'X'
-    self.coords[14,  5] = 'X'
-    self.coords[18,  5] = 'X'
-    self.coords[19,  5] = 'X'
-    self.coords[20,  5] = 'X'
 
-    self.coords[12,  7] = 'X'
-    self.coords[13,  7] = 'X'
-    self.coords[14,  7] = 'X'
-    self.coords[18,  7] = 'X'
-    self.coords[19,  7] = 'X'
-    self.coords[20,  7] = 'X'
-    self.coords[11,  8] = 'X'
-    self.coords[13,  8] = 'X'
-    self.coords[15,  8] = 'X'
-    self.coords[17,  8] = 'X'
-    self.coords[19,  8] = 'X'
-    self.coords[21,  8] = 'X'
+  def setup_pulsar(self):                                  # Create a pulsar
+    self.coords[ 5,  8] = 'X'
+    self.coords[ 5,  9] = 'X'
+    self.coords[ 5, 10] = 'X'
+    self.coords[ 5, 14] = 'X'
+    self.coords[ 5, 15] = 'X'
+    self.coords[ 5, 16] = 'X'
+    self.coords[ 7,  6] = 'X'
+    self.coords[ 7, 11] = 'X'
+    self.coords[ 7, 13] = 'X'
+    self.coords[ 7, 18] = 'X'
+    self.coords[ 8,  6] = 'X'
+    self.coords[ 8, 11] = 'X'
+    self.coords[ 8, 13] = 'X'
+    self.coords[ 8, 18] = 'X'
+    self.coords[ 9,  6] = 'X'
+    self.coords[ 9, 11] = 'X'
+    self.coords[ 9, 13] = 'X'
+    self.coords[ 9, 18] = 'X'
+    self.coords[10,  8] = 'X'
     self.coords[10,  9] = 'X'
-    self.coords[11,  9] = 'X'
-    self.coords[12,  9] = 'X'
-    self.coords[14,  9] = 'X'
-    self.coords[15,  9] = 'X'
-    self.coords[17,  9] = 'X'
-    self.coords[18,  9] = 'X'
-    self.coords[20,  9] = 'X'
-    self.coords[21,  9] = 'X'
-    self.coords[22,  9] = 'X'
     self.coords[10, 10] = 'X'
-    self.coords[13, 10] = 'X'
-    self.coords[15, 10] = 'X'
-    self.coords[17, 10] = 'X'
-    self.coords[19, 10] = 'X'
-    self.coords[22, 10] = 'X'
-    self.coords[13, 11] = 'X'
-    self.coords[14, 11] = 'X'
-    self.coords[18, 11] = 'X'
-    self.coords[19, 11] = 'X'
-    self.coords[12, 12] = 'X'
-    self.coords[13, 12] = 'X'
-    self.coords[19, 12] = 'X'
-    self.coords[20, 12] = 'X'
+    self.coords[10, 14] = 'X'
+    self.coords[10, 15] = 'X'
+    self.coords[10, 16] = 'X'
 
-  def setup_toad(self):
+    self.coords[12,  8] = 'X'
+    self.coords[12,  9] = 'X'
+    self.coords[12, 10] = 'X'
+    self.coords[12, 14] = 'X'
+    self.coords[12, 15] = 'X'
+    self.coords[12, 16] = 'X'
+    self.coords[13,  6] = 'X'
+    self.coords[13, 11] = 'X'
+    self.coords[13, 13] = 'X'
+    self.coords[13, 18] = 'X'
+    self.coords[14,  6] = 'X'
+    self.coords[14, 11] = 'X'
+    self.coords[14, 13] = 'X'
+    self.coords[14, 18] = 'X'
+    self.coords[15,  6] = 'X'
+    self.coords[15, 11] = 'X'
+    self.coords[15, 13] = 'X'
+    self.coords[15, 18] = 'X'
+    self.coords[17,  8] = 'X'
+    self.coords[17,  9] = 'X'
+    self.coords[17, 10] = 'X'
+    self.coords[17, 14] = 'X'
+    self.coords[17, 15] = 'X'
+    self.coords[17, 16] = 'X'
+
+
+  def setup_toad(self):                                  # Create a toad
     self.coords[12, 12] = 'X'
     self.coords[12, 13] = 'X'
     self.coords[12, 14] = 'X'
@@ -201,7 +153,8 @@ class Screen:
     self.coords[13, 12] = 'X'
     self.coords[13, 13] = 'X'
 
-  def setup_beacon(self):
+
+  def setup_beacon(self):                                # Create a beacon
     self.coords[11, 11] = 'X'
     self.coords[12, 11] = 'X'
     self.coords[11, 12] = 'X'
@@ -209,21 +162,37 @@ class Screen:
     self.coords[13, 14] = 'X'
     self.coords[14, 14] = 'X'
 
+  functions = {"random"         : setup_random,         # Dictionary of functions for command line access
+               "blinker"        : setup_blinker,
+               "pentadecathlon" : setup_pentadecathlon,
+               "pulsar"         : setup_pulsar,
+               "toad"           : setup_toad,
+               "beacon"         : setup_beacon}
 
-def test(stdscr, nCells):
+def wrapper_function(stdscr, func, nCells):
 
   random.seed(time.time())
 
   stdscr.clear()
   stdscr.refresh()
 
-  myscreen = Screen(stdscr.getmaxyx(), nCells)
-  #myscreen.setup_blinker()
-  #myscreen.setup_random()
-  #myscreen.setup_pulsar()
-  #myscreen.setup_toad()
-  #myscreen.setup_beacon()
-  myscreen.setup_pentadecathlon()
+  myscreen = Screen(stdscr.getmaxyx(), nCells)  # My screen/game board class
+
+  if func not in myscreen.functions.keys():     # Check the function specified in the command line was valid
+    print "Invalid function {0}.".format(func)
+    print "Valid options are:"
+    print myscreen.functions.keys()
+    exit(1)
+
+  if nCells < 0:
+    print "Ah, I see you're a QA engineer."
+    exit(1)
+  elif nCells > (myscreen.xmax*myscreen.ymax):
+    print "nCells is too high. It must be less than {0}.".format(myscreen.xmax*myscreen.ymax)
+    exit(1)
+
+  setup_function = myscreen.functions[func]     # Use a dictionary to get the right starting conditions
+  setup_function(myscreen)
 
   for (x, y), element in np.ndenumerate(myscreen.coords):
     stdscr.addstr(y, x, element)
@@ -241,8 +210,19 @@ def test(stdscr, nCells):
 
     k = stdscr.getch()
 
-def main():
-  curses.wrapper(test, 1000)
+
+def main(argv=sys.argv):
+
+  zap = argparse.ArgumentParser()
+  zap.add_argument("--function", "-f", type=str)
+  zap.add_argument("--nCells",   "-n", type=int, default=1000)
+
+  try:
+    args = zap.parse_args()
+  except:
+    exit(1)
+
+  curses.wrapper(wrapper_function, args.function, args.nCells)
 
 if __name__ == "__main__":
   main()
