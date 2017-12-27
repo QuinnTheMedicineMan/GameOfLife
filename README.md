@@ -1,4 +1,4 @@
-#Conway's Game of Life
+# Conway's Game of Life
 
 There are six starting configurations available at the command line.
 They are called using `./GameOfLife.py -f <config>`, where `<config>` is one of the following:
